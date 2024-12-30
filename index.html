@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Summarizer & Q&A Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Document Summarizer & Q&A Chatbot</h1>
+
+    <!-- File upload form -->
+    <h2>Upload a Document (PDF)</h2>
+    <form action="/process" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".pdf" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <!-- Display document summary -->
+    <h2>Document Summary</h2>
+    <div id="summary"></div>
+
+    <!-- Ask question form -->
+    <h2>Ask a Question About the Document</h2>
+    <form id="questionForm">
+        <input type="text" id="question" placeholder="Ask your question" required>
+        <button type="submit">Ask</button>
+    </form>
+    <div id="answer"></div>
+
+    <script>
+        // Handle file upload and display summary
+        document.querySelector('form[action="/process"]').onsubmit = async function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch('/process', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.summary) {
+                document.getElementById('summary').innerText = result.summary;
+            }
+        };
+
+        // Handle question submission and display answer
+        document.getElementById('questionForm').onsubmit = async function(event) {
+            event.preventDefault();
+            const question = document.getElementById('question').value;
+            const documentText = document.getElementById('summary').innerText;
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, document_text: documentText })
+            });
+            const result = await response.json();
+            if (result.answer) {
+                document.getElementById('answer').innerText = result.answer;
+            }
+        };
+    </script>
+</body>
+</html>
